@@ -103,7 +103,7 @@ pub struct Config {
 /// ```
 ///
 pub fn build<P: AsRef<Path>>(path: P) -> PathBuf {
-    Config::new(path.as_ref()).build()
+    Config::new(path.as_ref()).build(false)
 }
 
 impl Config {
@@ -438,7 +438,7 @@ impl Config {
     ///
     /// This will run both the build system generator command as well as the
     /// command to build the library.
-    pub fn build(&mut self) -> PathBuf {
+    pub fn build(&mut self, install: bool) -> PathBuf {
         let target = match self.target.clone() {
             Some(t) => t,
             None => getenv_unwrap("TARGET"),
@@ -866,9 +866,13 @@ impl Config {
             }
         }
 
-        cmd.arg("--build").arg(&build_dir);
+        if !install {
+            cmd.arg("--build").arg(&build_dir);
+        } else {
+            cmd.arg("--install").arg(&build_dir);
+        }
 
-        if !self.no_build_target {
+        if !self.no_build_target && !install {
             let target = self
                 .cmake_target
                 .clone()
